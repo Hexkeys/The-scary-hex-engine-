@@ -12,13 +12,18 @@ form.addEventListener("submit",e=>{
   const q=input.value.trim();
   if(!q)return;
   saveHistory(q);
-  // Every search gets a fresh, single-use URL path.
+
+  // Put a fresh, random one-time URL into browser history before leaving.
+  // Pressing Back therefore returns to /<random-token>, which is not a real
+  // file on GitHub Pages and will show the site's normal 404 page.
   const token=crypto.randomUUID().replaceAll("-","").slice(0,12);
-  const url=new URL(location.href);
-  url.search="";
-  url.hash="";
-  url.pathname=url.pathname.replace(/\/$/,"")+"/"+token;
-  location.replace("https://www.google.com/search?q="+encodeURIComponent(q));
+  const base=new URL(location.href);
+  base.search="";
+  base.hash="";
+  base.pathname=base.pathname.replace(/\/$/,"")+"/"+token;
+  history.pushState({oneTime:true}, "", base.pathname);
+
+  window.location.href="https://www.google.com/search?q="+encodeURIComponent(q);
 });
 
 historyButton.addEventListener("click",()=>{
@@ -26,7 +31,6 @@ historyButton.addEventListener("click",()=>{
   if(!h.length){status.textContent="No unused history.";historyButton.disabled=true;return}
   historyBox.innerHTML=h.map(q=>"<a href=\"https://www.google.com/search?q="+encodeURIComponent(q)+"\">"+escapeHtml(q)+"</a>").join("");
   historyBox.hidden=false;
-  // One-time use: viewing History consumes it.
   sessionStorage.removeItem("hexSearchHistory");
   historyButton.disabled=true;
   status.textContent="History used. It will not be available again in this session.";
