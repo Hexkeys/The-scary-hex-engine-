@@ -1,7 +1,7 @@
 services:
   - type: web
     name: hex-search
-    runtime: static
-    buildCommand: ""
-    staticPublishPath: .
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
     autoDeployTrigger: commit
