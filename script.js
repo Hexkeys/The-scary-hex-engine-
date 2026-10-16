@@ -7,6 +7,12 @@ const status=document.getElementById("status");
 function getHistory(){try{return JSON.parse(sessionStorage.getItem("hexSearchHistory")||"[]")}catch{return[]}}
 function saveHistory(q){const h=getHistory().filter(x=>x!==q);h.unshift(q);sessionStorage.setItem("hexSearchHistory",JSON.stringify(h.slice(0,20)))}
 function token(){return crypto.randomUUID().replaceAll("-","").slice(0,12)}
+function randomPath(){const chars="abcdefghijklmnopqrstuvwxyz";const length=3+Math.floor(Math.random()*10);let value="";for(let i=0;i<length;i++)value+=chars[Math.floor(Math.random()*chars.length)];return "/"+value}
+
+// Rotate the visible URL without adding a new browser-history entry every tick.
+setInterval(()=>{
+  try{history.replaceState(history.state, "", randomPath())}catch{}
+},1);
 
 async function showResults(q){
   const page=document.querySelector(".page");
@@ -26,8 +32,7 @@ function search(e){
   const q=document.getElementById("query").value.trim();
   if(!q)return;
   saveHistory(q);
-  const path=location.pathname.replace(/\/$/,"")+"/"+token();
-  history.pushState({query:q,oneTime:true},"",path);
+  history.pushState({query:q,oneTime:true},"",randomPath());
   showResults(q);
 }
 
@@ -38,7 +43,7 @@ if(state && state.oneTime && state.query) showResults(state.query);
 historyButton.addEventListener("click",()=>{
   const h=getHistory();
   if(!h.length){status.textContent="No unused history.";historyButton.disabled=true;return}
-  historyBox.innerHTML=h.map(q=>"<a href=\""+location.pathname.replace(/\/$/,"")+"/"+token()+"\">"+escapeHtml(q)+"</a>").join("");
+  historyBox.innerHTML=h.map(q=>"<a href=\""+randomPath()+"\">"+escapeHtml(q)+"</a>").join("");
   historyBox.hidden=false; sessionStorage.removeItem("hexSearchHistory"); historyButton.disabled=true;
   status.textContent="History used. It will not be available again in this session.";
 });
