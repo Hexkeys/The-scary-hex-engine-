@@ -3,6 +3,28 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 10000;
 
+// Permit the GitHub Pages frontend to call this API when deployed separately.
+// Set ALLOWED_ORIGIN to the exact Pages origin if using a custom domain.
+const allowedOrigins = new Set([
+  'https://hexkeys.github.io',
+  'http://localhost:10000',
+  'http://127.0.0.1:10000',
+  ...(process.env.ALLOWED_ORIGIN ? process.env.ALLOWED_ORIGIN.split(',').map(x => x.trim()) : [])
+]);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname)));
 
 app.get('/api/search', async (req, res) => {
@@ -13,6 +35,7 @@ app.get('/api/search', async (req, res) => {
     const response = await fetch('https://html.duckduckgo.com/html/?q=' + encodeURIComponent(q), {
       headers: { 'User-Agent': 'Mozilla/5.0 HexSearch/1.0' }
     });
+    if (!response.ok) return res.status(502).json({ error: 'Search provider unavailable' });
     const html = await response.text();
     const results = [];
     const re = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
