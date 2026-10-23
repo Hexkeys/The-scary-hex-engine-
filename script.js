@@ -7,7 +7,7 @@ const API_BASE=String(window.HEX_SEARCH_API_BASE||"").replace(/\/$/,"");
 
 function getHistory(){try{return JSON.parse(sessionStorage.getItem("hexSearchHistory")||"[]")}catch{return[]}}
 function saveHistory(q){const h=getHistory().filter(x=>x!==q);h.unshift(q);sessionStorage.setItem("hexSearchHistory",JSON.stringify(h.slice(0,20)))}
-function randomPath(){const chars="abcdefghijklmnopqrstuvwxyz";const length=3+Math.floor(Math.random()*10);let value="";for(let i=0;i<length;i++)value+=chars[Math.floor(Math.random()*chars.length)];return "/"+value}
+function randomPath(){const chars="abcdefghijklmnopqrstuvwxyz";const length=3+Math.floor(Math.random()*10);let value="";for(let i=0;i<length;i++)value+=chars[Math.floor(Math.random()*chars.length)];return "?p="+value}
 
 // Change the current URL only on navigation; avoid a tight timer that hammers history APIs.
 function setRandomUrl(){try{history.replaceState(history.state,"",randomPath())}catch{}}
